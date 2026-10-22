@@ -19,7 +19,7 @@ MQTT input: `devices/<device_id>/telemetry`. ACK: `devices/<device_id>/ack`, not
 {"device_id":"demo-01","boot_id":"session-1","seq":0,"uptime_ms":2000,"metric":"temperature_c","value":24.5,"source":"simulated","firmware":"sim-0.1.0"}
 ```
 
-All eight fields are required, with no additional fields. IDs/firmware use 1–40 ASCII letters, digits, underscores or hyphens. Sequence and uptime are nonnegative signed-64-bit-range integers, excluding booleans. Values must be finite; temperature range -100..200 °C; ADC range 0..4095. Source is `hardware` or `simulated`. Body bound: 1024 bytes. Source/identity declarations are not authenticated.
+All eight fields are required, with no additional fields. IDs use 1–40 ASCII letters, digits, underscores or hyphens; firmware versions also permit dots. Sequence and uptime are nonnegative signed-64-bit-range integers, excluding booleans. Values must be finite; temperature range -100..200 °C; ADC range 0..4095. Source is `hardware` or `simulated`. Body bound: 1024 bytes. Source/identity declarations are not authenticated.
 
 ```json
 {"device_id":"demo-01","boot_id":"session-1","seq":0,"status":"stored"}
