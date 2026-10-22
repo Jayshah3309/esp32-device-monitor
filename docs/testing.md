@@ -4,7 +4,9 @@
 
 Final local Python 3.12 run: **13 tests passed**, including a real Mosquitto 2.0.18 broker and a CLI simulator delivering five versioned records. Dashboard JavaScript syntax also passed `node --check`. The initial CLI experiment exposed rejection of dotted firmware versions; validation was corrected and a CLI regression test added. No hardware results, performance numbers or OTA claims are implied.
 
-Initial [GitHub CI run](https://github.com/Jayshah3309/esp32-device-monitor/actions/runs/39771946477), commit `3e27ae67caa0d6c4e4d6eab2a169e64e531667d2`, passed Python 3.10/3.12, PostgreSQL, real MQTT and ESP32 compilation. That run predates the version-validation fix; the final run is recorded below once verified. The runner emitted Node 20 deprecation and Ubuntu runner migration notices; jobs passed. Docker Compose itself has not been executed in the authoring environment.
+Initial [GitHub CI run](https://github.com/Jayshah3309/esp32-device-monitor/actions/runs/39771946477), commit `3e27ae67caa0d6c4e4d6eab2a169e64e531667d2`, passed Python 3.10/3.12, PostgreSQL, real MQTT and ESP32 compilation. That run predates the version-validation fix.
+
+Final [verification run](https://github.com/Jayshah3309/esp32-device-monitor/actions/runs/39772871848), commit `7eb36b9a34ae231032b8009707e3faddcea49cd9`, passed **firmware, Python 3.10 and Python 3.12**. The Python jobs include SQLite tests, PostgreSQL tests (including the CLI regression), and real MQTT integration. This is software/build evidence only. The runner emitted Node 20 deprecation and Ubuntu runner migration notices; jobs passed. Docker Compose itself has not been executed in the authoring environment.
 
 ## Reproduce
 
