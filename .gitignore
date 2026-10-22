@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+data/
+*.sqlite*
+firmware/device_monitor/config.h
+.env
