@@ -16,6 +16,7 @@ from urllib.parse import parse_qs, urlparse
 LOG = logging.getLogger("monitor")
 ROOT = Path(__file__).parent
 IDENTIFIER = re.compile(r"[A-Za-z0-9_-]{1,40}\Z")
+VERSION = re.compile(r"[A-Za-z0-9_.-]{1,40}\Z")
 FIELDS = {"device_id", "boot_id", "seq", "uptime_ms", "metric", "value", "source", "firmware"}
 SCHEMA = """CREATE TABLE IF NOT EXISTS readings (
  device_id TEXT NOT NULL, boot_id TEXT NOT NULL, seq BIGINT NOT NULL,
@@ -34,7 +35,8 @@ def validate(raw):
     if not isinstance(data, dict) or set(data) != FIELDS:
         raise ValueError("unexpected or missing fields")
     for key in ("device_id", "boot_id", "firmware"):
-        if not isinstance(data[key], str) or not IDENTIFIER.fullmatch(data[key]):
+        pattern = VERSION if key == "firmware" else IDENTIFIER
+        if not isinstance(data[key], str) or not pattern.fullmatch(data[key]):
             raise ValueError("invalid " + key)
     for key in ("seq", "uptime_ms"):
         if type(data[key]) is not int or not 0 <= data[key] <= 2**63 - 1:
