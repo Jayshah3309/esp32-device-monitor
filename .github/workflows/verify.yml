@@ -1,0 +1,48 @@
+name: Verify device monitor
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.10', '3.12']
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: monitor
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: monitor_test
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U monitor" --health-interval 3s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - name: Test PostgreSQL adapter
+        run: python -m unittest discover -s tests -p test_monitor.py -v
+        env:
+          TEST_DATABASE_URL: postgresql://monitor:ci-only@127.0.0.1/monitor_test
+      - name: Test real MQTT broker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mosquitto
+          python -m unittest discover -s tests -p test_mqtt.py -v
+        env:
+          MQTT_TEST_HOST: 127.0.0.1
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - run: |
+          arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core install esp32:esp32@3.0.7 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli lib install PubSubClient@2.8 ArduinoJson@7.2.1
+          cp firmware/device_monitor/config.example.h firmware/device_monitor/config.h
+          arduino-cli compile --fqbn esp32:esp32:esp32 firmware/device_monitor
