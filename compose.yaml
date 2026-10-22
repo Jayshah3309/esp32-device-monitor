@@ -1,0 +1,43 @@
+services:
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: monitor
+      POSTGRES_PASSWORD: local-demo-only
+      POSTGRES_DB: monitor
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monitor"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  broker:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    ports:
+      - "127.0.0.1:1883:1883"
+  monitor:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://monitor:local-demo-only@database/monitor
+      MQTT_HOST: broker
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+      broker:
+        condition: service_started
+  simulator:
+    build: .
+    command: ["python", "simulator.py", "--mqtt-host", "broker"]
+    volumes:
+      - outbox:/app/data
+    depends_on:
+      - broker
+      - monitor
+volumes:
+  database:
+  outbox:
