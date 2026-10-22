@@ -4,6 +4,7 @@ from pathlib import Path
 import sqlite3
 import sys
 import tempfile
+import subprocess
 import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
@@ -73,6 +74,20 @@ class TelemetryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.ingest(json.dumps(record()).encode(), 'devices/other/telemetry')
         self.assertEqual(self.store.history(), [])
+
+    def test_cli_simulator_delivers_versioned_records(self):
+        server = ThreadingHTTPServer(('127.0.0.1',0),handler(self.store))
+        thread = threading.Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            subprocess.run([sys.executable,str(Path(__file__).resolve().parents[1]/'simulator.py'),
+                '--url',f'http://127.0.0.1:{server.server_port}', '--outbox',str(Path(self.temp.name)/'cli-outbox'),
+                '--samples','5','--interval','.1'],check=True,timeout=12,capture_output=True)
+            rows = self.store.history()
+            self.assertEqual(len(rows),5)
+            self.assertTrue(all(r['source']=='simulated' and r['firmware']=='sim-0.1.0' for r in rows))
+        finally:
+            server.shutdown();server.server_close();thread.join()
 
     def test_device_is_stale_after_threshold(self):
         self.ingest(record())
